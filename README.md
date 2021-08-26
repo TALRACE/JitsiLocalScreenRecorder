@@ -42,3 +42,7 @@ It is recommended to start screen recording only after all the conditions are me
 ## Browser compatibility
 
 Latest versions of all popular browsers
+
+## Electron support
+
+Yes. The solution uses the `JitsiMeetScreenObtainer.openDesktopPicker` for the electron.

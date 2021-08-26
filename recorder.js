@@ -2,19 +2,57 @@ let audioCtx;
 let audioDest;
 let recorder;
 
-window.addEventListener('message', event => {
+window.addEventListener('message', baseHandler);
+window.parent.postMessage({ type: 'recorder_ready' }, '*');
+
+function baseHandler(event) {
     if (event && event.data) {
         switch (event.data.type) {
             case 'recorder_start':
-                startRecording();
+                if (window.JitsiMeetElectron && JitsiMeetScreenObtainer && JitsiMeetScreenObtainer.openDesktopPicker) {
+                    closeDesktopPicker();
+                    let observer = new MutationObserver((mutations) => {
+                        let el = document.querySelector('label > input[name=share-system-audio]');
+                        if (el) {
+                            el.closest('label').style.display = 'none';
+                        }
+                    });
+                    observer.observe(document.querySelector('.atlaskit-portal-container'), {
+                        childList: true,
+                        subtree: true
+                    });
+                    JitsiMeetScreenObtainer.openDesktopPicker(
+                        { desktopSharingSources: ['screen', 'window'] },
+                        streamId => {
+                            observer.disconnect();
+                            if (streamId) {
+                                startRecording(navigator.mediaDevices.getUserMedia({
+                                    audio: false,
+                                    video: {
+                                        mandatory: {
+                                            chromeMediaSource: 'desktop',
+                                            chromeMediaSourceId: streamId
+                                        }
+                                    }
+                                }));
+                            } else {
+                                window.parent.postMessage({ type: 'recorder_stop' }, '*');
+                            }
+                        }
+                    );
+                } else {
+                    startRecording(navigator.mediaDevices.getDisplayMedia({
+                        audio: false,
+                        video: true
+                    }));
+                }
                 break;
             case 'recorder_stop':
                 stopRecording();
                 break;
         }
     }
-});
-window.parent.postMessage({ type: 'recorder_ready' }, '*');
+}
 
 function clrCtx() {
     recorder = null;
@@ -36,16 +74,13 @@ function trackAddedHandler(track) {
     }
 }
 
-async function startRecording() {
+async function startRecording(videoStreamPromise) {
     try {
         const recordingData = [];
         audioCtx = new AudioContext();
         audioDest = audioCtx.createMediaStreamDestination();
 
-        const videoTrack = (await navigator.mediaDevices.getDisplayMedia({
-            video: true,
-            audio: false
-        })).getVideoTracks()[0];
+        const videoTrack = (await videoStreamPromise).getVideoTracks()[0];
         videoTrack.addEventListener('ended', () => {
             window.parent.postMessage({ type: 'recorder_stop' }, '*');
             stopRecording();
@@ -90,11 +125,22 @@ function stopRecording() {
     try {
         if (recorder) {
             recorder.stop();
+        } else {
+            closeDesktopPicker();
         }
     } catch (e) {
         errorHandler(e);
     }
     clrCtx();
+}
+
+function closeDesktopPicker() {
+    if (window.JitsiMeetElectron) {
+        let desktopPickerCancelBtn = document.getElementById('modal-dialog-cancel-button');
+        if (desktopPickerCancelBtn) {
+            desktopPickerCancelBtn.click();
+        }
+    }
 }
 
 function createSilentAudio(time, freq = 44100) {
