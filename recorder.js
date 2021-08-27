@@ -11,16 +11,19 @@ function baseHandler(event) {
             case 'recorder_start':
                 if (window.JitsiMeetElectron && JitsiMeetScreenObtainer && JitsiMeetScreenObtainer.openDesktopPicker) {
                     closeDesktopPicker();
-                    let observer = new MutationObserver((mutations) => {
-                        let el = document.querySelector('label > input[name=share-system-audio]');
+                    let observer = new MutationObserver(() => {
+                        let el = document.querySelector('label:not([style]) > input[name=share-system-audio]');
                         if (el) {
                             el.closest('label').style.display = 'none';
                         }
                     });
-                    observer.observe(document.querySelector('.atlaskit-portal-container'), {
-                        childList: true,
-                        subtree: true
-                    });
+                    let bodyEl = document.querySelector('body.desktop-browser');
+                    if (bodyEl) {
+                        observer.observe(bodyEl, {
+                            childList: true,
+                            subtree: true
+                        });
+                    }
                     JitsiMeetScreenObtainer.openDesktopPicker(
                         { desktopSharingSources: ['screen', 'window'] },
                         streamId => {
