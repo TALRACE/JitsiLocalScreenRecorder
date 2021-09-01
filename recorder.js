@@ -2,8 +2,10 @@ let audioCtx;
 let audioDest;
 let recorder;
 
-window.addEventListener('message', baseHandler);
-window.parent.postMessage({ type: 'recorder_ready' }, '*');
+if (navigator.mediaDevices.getDisplayMedia) {
+    window.addEventListener('message', baseHandler);
+    window.parent.postMessage({ type: 'recorder_ready' }, '*');
+}
 
 function baseHandler(event) {
     if (event && event.data) {
