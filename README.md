@@ -41,7 +41,7 @@ It is recommended to start screen recording only after all the conditions are me
 
 ## Browser compatibility
 
-Latest versions of all popular browsers
+Latest versions of all popular desktop browsers
 
 ## Electron support
 
