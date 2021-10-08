@@ -31,25 +31,31 @@ function baseHandler(event) {
                         streamId => {
                             observer.disconnect();
                             if (streamId) {
-                                startRecording(navigator.mediaDevices.getUserMedia({
-                                    audio: false,
-                                    video: {
-                                        mandatory: {
-                                            chromeMediaSource: 'desktop',
-                                            chromeMediaSourceId: streamId
+                                startRecording(
+                                    navigator.mediaDevices.getUserMedia({
+                                        audio: false,
+                                        video: {
+                                            mandatory: {
+                                                chromeMediaSource: 'desktop',
+                                                chromeMediaSourceId: streamId
+                                            }
                                         }
-                                    }
-                                }));
+                                    }),
+                                    event.data.data && event.data.data.external_save
+                                );
                             } else {
                                 window.parent.postMessage({ type: 'recorder_stop' }, '*');
                             }
                         }
                     );
                 } else {
-                    startRecording(navigator.mediaDevices.getDisplayMedia({
-                        audio: false,
-                        video: true
-                    }));
+                    startRecording(
+                        navigator.mediaDevices.getDisplayMedia({
+                            audio: false,
+                            video: true
+                        }),
+                        event.data.data && event.data.data.external_save
+                    );
                 }
                 break;
             case 'recorder_stop':
@@ -79,7 +85,7 @@ function trackAddedHandler(track) {
     }
 }
 
-async function startRecording(videoStreamPromise) {
+async function startRecording(videoStreamPromise, isExternalSave) {
     try {
         const recordingData = [];
         audioCtx = new AudioContext();
@@ -107,19 +113,29 @@ async function startRecording(videoStreamPromise) {
         recorder.onerror = e => {
             throw e;
         };
-        recorder.ondataavailable = e => {
-            if (e.data && e.data.size > 0) {
-                recordingData.push(e.data);
-            }
-        };
+        if (isExternalSave) {
+            recorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) {
+                    window.parent.postMessage({ type: 'recorder_data', data: e.data }, '*');
+                }
+            };
+        } else {
+            recorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) {
+                    recordingData.push(e.data);
+                }
+            };
+        }
         recorder.onstop = () => {
             videoTrack.stop();
-            const a = document.createElement('a');
-            a.href = window.URL.createObjectURL(new Blob(recordingData, { type: 'video/mp4' }));
-            a.download = APP.conference._room.getMeetingUniqueId();
-            a.click();
+            if (!isExternalSave && recordingData.length) {
+                const a = document.createElement('a');
+                a.href = window.URL.createObjectURL(new Blob(recordingData, { type: 'video/mp4' }));
+                a.download = APP.conference._room.getMeetingUniqueId();
+                a.click();
+            }
         };
-        recorder.start();
+        recorder.start(1000);
     } catch (e) {
         errorHandler(e);
         clrCtx();

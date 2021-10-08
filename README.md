@@ -27,13 +27,14 @@ Communication with the recorder takes place using Cross-window communication `ji
 Before initializing `Jitsi Iframe API` it is required to subscribe to window event `message` for listening commands from the recorder.
 
 Commands for the recorder:
-* `{type: 'recorder_start'}` starts recording and prompts the user to select a screen to record
+* `{type: 'recorder_start', data: {external_save: boolean}}` starts recording and prompts the user to select a screen to record; `external_save` allows to save recording data yourself and passes chunks to the parent window every second
 * `{type: 'recorder_stop'}` stops recording and prompts the user to save the file or saves the file without notification depending on the browser settings
 
 Commands from the recorder:
 * `{type: 'recorder_ready'}` the recorder is initialized and ready to receive commands to record the screen
 * `{type: 'recorder_stop'}` recording stopped unexpectedly and prompted to save the file. This can happen if the user has stopped capture of the screen through the browser interface
 * `{type: 'recorder_error'}` errors have occurred on the recorder side. it is recommended to perform the same actions in your interface as when stopping recording. The recorder will display an error in the console
+* `{type: 'recorder_data', data: Blob}` chunks of data received if the parameter `external_save` is enabled
 
 It is recommended to start screen recording only after all the conditions are met:
 * recorder announced that it is ready to receive commands through the `recorder_ready` command
