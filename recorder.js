@@ -130,7 +130,7 @@ async function startRecording(videoStreamPromise, isExternalSave) {
             videoTrack.stop();
             if (!isExternalSave && recordingData.length) {
                 const a = document.createElement('a');
-                a.href = window.URL.createObjectURL(new Blob(recordingData, { type: 'video/mp4' }));
+                a.href = window.URL.createObjectURL(new Blob(recordingData, { type: recordingData[0].type }));
                 a.download = APP.conference._room.getMeetingUniqueId();
                 a.click();
             }
