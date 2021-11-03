@@ -32,6 +32,7 @@ Commands for the recorder:
 
 Commands from the recorder:
 * `{type: 'recorder_ready'}` the recorder is initialized and ready to receive commands to record the screen
+* `{type: 'recorder_start'}` notification that recording was started. Obviously that after user will choose video stream
 * `{type: 'recorder_stop'}` recording stopped unexpectedly and prompted to save the file. This can happen if the user has stopped capture of the screen through the browser interface
 * `{type: 'recorder_error'}` errors have occurred on the recorder side. it is recommended to perform the same actions in your interface as when stopping recording. The recorder will display an error in the console
 * `{type: 'recorder_data', data: Blob}` chunks of data received if the parameter `external_save` is enabled

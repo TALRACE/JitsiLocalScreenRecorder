@@ -136,6 +136,7 @@ async function startRecording(videoStreamPromise, isExternalSave) {
             }
         };
         recorder.start(1000);
+        window.parent.postMessage({ type: 'recorder_start' }, '*');
     } catch (e) {
         errorHandler(e);
         clrCtx();
