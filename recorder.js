@@ -100,8 +100,9 @@ async function startRecording(videoStreamPromise, isExternalSave) {
 
         APP.conference._room.on(JitsiMeetJS.events.conference.TRACK_ADDED, trackAddedHandler);
         audioCtx.createMediaElementSource(new Audio(createSilentAudio(1))).connect(audioDest);
-        if (APP.conference.localAudio) {
-            audioCtx.createMediaStreamSource(APP.conference.localAudio.stream).connect(audioDest);
+        let localAudioTrack = APP.conference._room.getLocalAudioTrack();
+        if (localAudioTrack && localAudioTrack.stream) {
+            audioCtx.createMediaStreamSource(localAudioTrack.stream).connect(audioDest);
         }
         for (let participant of APP.conference._room.getParticipants()) {
             for (let track of participant.getTracksByMediaType('audio')) {

@@ -22,6 +22,8 @@ Simply need to insert [recorder.js](https://github.com/TALRACE/LocalScreenRecord
 
 ## Integration
 
+Last checked version: [docker-jitsi-meet stable-7001](https://github.com/jitsi/docker-jitsi-meet/releases/tag/stable-7001)
+
 The recorder implementation does not provide an additional interface. In any case, you can add the interface yourself. It is recommended to use the [Jitsi Iframe API](https://jitsi.github.io/handbook/docs/dev-guide/dev-guide-iframe).
 Communication with the recorder takes place using Cross-window communication `jitsiIframeApi.getIFrame().contentWindow.postMessage(command, '*');`.
 Before initializing `Jitsi Iframe API` it is required to subscribe to window event `message` for listening commands from the recorder.
